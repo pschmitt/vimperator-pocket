@@ -281,9 +281,9 @@ let PLUGIN_INFO = xml`
 
 	let Pocket = {
 		consumer_key : (liberator.globalVariables.pocket_consumer_key) ? liberator.globalVariables.pocket_consumer_key : "23278-c7925a9b346ff568386d5549",
-		// TODO save this in a cookie or maybe even discard?		
+		// TODO save this in a cookie or maybe even discard?
 		oauth_code : '',
-		redirect_uri : 'http://junk.lxl.io/pocket',		
+		redirect_uri : 'http://junk.lxl.io/pocket',
 		oauth_token : (liberator.globalVariables.pocket_oauth_token) ? liberator.globalVariables.pocket_oauth_token : '',
 
 		// TODO Remove?
@@ -318,7 +318,7 @@ let PLUGIN_INFO = xml`
 		req.post();
 
 		}, // }}}
-		
+
 		auth_req: function(state, callback) { // {{{
 		// document => https://getpocket.com/api/docs#get
 
@@ -342,10 +342,10 @@ let PLUGIN_INFO = xml`
 
 		req.addEventListener("success",function(data){
 			let code = data.responseText;
-			Pocket.oauth_code = code.match(/code=(.+)$/)[1]; 
+			Pocket.oauth_code = code.match(/code=(.+)$/)[1];
 			// alert(Pocket.oauth_code);
 			echo("Auth code:" + Pocket.oauth_code);
-			
+
 			// Open new tab
 			var win=window.open("https://getpocket.com/auth/authorize?request_token=" + Pocket.oauth_code + "&redirect_uri=" + Pocket.redirect_uri, '_blank');
 			win.focus();
@@ -362,7 +362,7 @@ let PLUGIN_INFO = xml`
 		req.post();
 
 		}, // }}}
-		
+
 		auth: function(state, callback) { // {{{
 		// document => https://getpocket.com/api/docs#get
 
@@ -386,7 +386,7 @@ let PLUGIN_INFO = xml`
 
 		req.addEventListener("success",function(data) {
 			let token = data.responseText;
-			Pocket.oauth_token = token.match(/access_token=(.+)&username=.*$/)[1]; 
+			Pocket.oauth_token = token.match(/access_token=(.+)&username=.*$/)[1];
 			echo("Token: " + Pocket.oauth_token);
 			util.copyToClipboard(Pocket.oauth_token);
 		});
@@ -395,13 +395,13 @@ let PLUGIN_INFO = xml`
 			liberator.echoerr(data.responseText);
 			alert(data.responseText);
 		});
-		
+
 		req.post();
 
-		}, // }}} 
+		}, // }}}
 
 		get : function(state, callback){ // {{{
-		// API: http://getpocket.com/developer/docs/v3/retrieve 
+		// API: http://getpocket.com/developer/docs/v3/retrieve
 		let manager = Components.classes["@mozilla.org/login-manager;1"].getService(Components.interfaces.nsILoginManager);
 		let logins = manager.findLogins({},"http://getpocket.com","",null);
 
@@ -453,9 +453,8 @@ let PLUGIN_INFO = xml`
 			}
 
 		);
-		alert("CKey: " + this.consumer_key + " Token: " + this.oauth_token);
-		req.addEventListener("success",callback);
 
+		req.addEventListener("success",callback);
 		req.addEventListener("failure",function(data){
 			liberator.echoerr(data.statusText);
 			liberator.echoerr(data.responseText);
@@ -599,7 +598,7 @@ let PLUGIN_INFO = xml`
 		req.post();
 
 		}, // }}}
-		
+
 		debug : function() {
 			alert("Consumer Key: " + this.consumer_key + " Token: " + this.oauth_token);
 		},
