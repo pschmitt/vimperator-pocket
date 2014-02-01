@@ -281,9 +281,10 @@ let PLUGIN_INFO = xml`
 
 	let Pocket = {
 		consumer_key : (liberator.globalVariables.pocket_consumer_key) ? liberator.globalVariables.pocket_consumer_key : "23278-c7925a9b346ff568386d5549",
-		oauth_code : '', // TODO save this in a cookie or maybe even discard?		
-		redirect_uri : 'http://lxl.io',		
-		oauth_token : '',
+		// TODO save this in a cookie or maybe even discard?		
+		oauth_code : '',
+		redirect_uri : 'http://junk.lxl.io/pocket',		
+		oauth_token : (liberator.globalVariables.pocket_oauth_token) ? liberator.globalVariables.pocket_oauth_token : '',
 
 		// TODO Remove?
 		text : function(){ // {{{
@@ -387,6 +388,7 @@ let PLUGIN_INFO = xml`
 			let token = data.responseText;
 			Pocket.oauth_token = token.match(/access_token=(.+)&username=.*$/)[1]; 
 			echo("Token: " + Pocket.oauth_token);
+			util.copyToClipboard(Pocket.oauth_token);
 		});
 		req.addEventListener("failure",function(data){
 			liberator.echoerr(data.statusText);
