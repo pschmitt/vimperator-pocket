@@ -5,30 +5,6 @@
  * TODO:ADDにbufferからのリストを入れられるように
 */
 
-// var INFO =
-// <plugin name="pocket" version="0.1"
-//         href="https://getpocket.com"
-//         summary="Pocket"
-//         xmlns="http://vimperator.org/namespaces/liberator">
-//     <author email="philipp@schmitt.co">Philipp Schmitt</author>
-//     <project name="Vimperator" minVersion="3.0"/>
-//     <p>
-//         This plugin based on readitlater from Ninja Tottori provides access to getpocket.com in Vimperator.
-//     </p>
-//     <item>
-// 		<tags>'readitlater' 'ril' 'pocket'</tags>
-// 		<spec>'readitlater'</spec>
-// 			<type>boolean</type>
-// 			<default>true</default>
-// 		<description>
-// 				<p>
-// 					Retrieve your reading list, mark articles as read, add new articles to your list.
-// 				</p>
-// 		</description>
-//     </item>
-// </plugin>;
-
-
 let PLUGIN_INFO = xml`
 <VimperatorPlugin>
 	<name>pocket</name>
@@ -87,6 +63,42 @@ let PLUGIN_INFO = xml`
 	let listOptions = [ // {{{
 		[['-filter', '-f'], commands.OPTION_STRING, null, []]
 	]; // }}}
+
+function print_r(arr, level) {
+
+	var dumped_text = "";
+	if (!level) level = 0;
+
+	//The padding given at the beginning of the line.
+	var level_padding = "";
+	var bracket_level_padding = "";
+
+	for (var j = 0; j < level + 1; j++) level_padding += "    ";
+	for (var b = 0; b < level; b++) bracket_level_padding += "    ";
+
+	if (typeof(arr) == 'object') { //Array/Hashes/Objects
+		dumped_text += "Array\n";
+		dumped_text += bracket_level_padding + "(\n";
+		for (var item in arr) {
+
+			var value = arr[item];
+
+			if (typeof(value) == 'object') { //If it is an array,
+				dumped_text += level_padding + "[" + item + "] => ";
+				dumped_text += print_r(value, level + 2);
+			} else {
+				dumped_text += level_padding + "[" + item + "] => " + value + "\n";
+			}
+
+		}
+		dumped_text += bracket_level_padding + ")\n\n";
+	} else { //Stings/Chars/Numbers etc.
+		dumped_text = "===>" + arr + "<===(" + typeof(arr) + ")";
+	}
+
+	return dumped_text;
+
+}
 
 	function listCompleter(context,args){ // {{{
 
@@ -183,9 +195,19 @@ let PLUGIN_INFO = xml`
 				}
 			),
 
-			new Command(["read","r"], "Mark items as read.",
+			new Command(["read","r"], "Mark item(s) as read.",
 				function (args) {
 					markAsRead(args);
+				},{
+					bang: true,
+					completer : listCompleter,
+					options: listOptions
+				}
+			),
+
+			new Command(["delete","d"], "Delete item(s)",
+				function (args) {
+					deleteArticle(args);
 				},{
 					bang: true,
 					completer : listCompleter,
@@ -216,9 +238,15 @@ let PLUGIN_INFO = xml`
 				function () {
 					Pocket.auth();
 				},{}
-			),new Command(["debug"], "Debug",
+			),
+			new Command(["debug"], "Debug",
 				function () {
 					Pocket.debug();
+				},{}
+			),
+			new Command(["sync"], "Sync",
+				function () {
+					Pocket.get();
 				},{}
 			),
 		],
@@ -286,39 +314,6 @@ let PLUGIN_INFO = xml`
 		redirect_uri : 'http://junk.lxl.io/pocket',
 		oauth_token : (liberator.globalVariables.pocket_oauth_token) ? liberator.globalVariables.pocket_oauth_token : '',
 
-		// TODO Remove?
-		text : function(){ // {{{
-
-		let req = new libly.Request(
-			"https://getpocket.com/v3/text" , // url
-			null, // headers
-			{ // options
-			asynchronous:true,
-			postBody:getParameterMap(
-				{
-				consumer_key   : this.consumer_key,
-				url      : buffer.URL,
-				mode     : "less",
-				images   : 0,
-				}
-			)
-			}
-
-		);
-
-		req.addEventListener("success",function(data){
-			e(data.responseText)
-		});
-
-		req.addEventListener("failure",function(data){
-			liberator.echoerr(data.statusText);
-			liberator.echoerr(data.responseText);
-		});
-
-		req.post();
-
-		}, // }}}
-
 		auth_req: function(state, callback) { // {{{
 		// document => https://getpocket.com/api/docs#get
 
@@ -343,15 +338,13 @@ let PLUGIN_INFO = xml`
 		req.addEventListener("success",function(data){
 			let code = data.responseText;
 			Pocket.oauth_code = code.match(/code=(.+)$/)[1];
-			// alert(Pocket.oauth_code);
 			echo("Auth code:" + Pocket.oauth_code);
 
 			// Open new tab
 			var win=window.open("https://getpocket.com/auth/authorize?request_token=" + Pocket.oauth_code + "&redirect_uri=" + Pocket.redirect_uri, '_blank');
 			win.focus();
-			callback();
 			// TODO React to oauth suceeded/failed (via callback url)
-			// Pocket.auth();
+			Pocket.auth();
 		});
 
 		req.addEventListener("failure",function(data){
@@ -393,7 +386,7 @@ let PLUGIN_INFO = xml`
 		req.addEventListener("failure",function(data){
 			liberator.echoerr(data.statusText);
 			liberator.echoerr(data.responseText);
-			alert(data.responseText);
+			// Pocket.debug();
 		});
 
 		req.post();
@@ -415,7 +408,7 @@ let PLUGIN_INFO = xml`
 				consumer_key : this.consumer_key,
 				access_token : this.oauth_token,
 				format    	 : "json",
-				count     	 : (liberator.globalVariables.pocket_get_count? liberator.globalVariables.pocket_get_count : 50 ),
+				count     	 : (liberator.globalVariables.pocket_get_count? liberator.globalVariables.pocket_get_count : 100 ),
 				state     	 : state
 				}
 			)
@@ -423,7 +416,11 @@ let PLUGIN_INFO = xml`
 
 		);
 
-		req.addEventListener("success",function(data) callback(libly.$U.evalJson(data.responseText)));
+		req.addEventListener("success",function(data){
+			liberator.echo("[Pocket] Sync completed");
+			alert(print_r(ListCache));
+			callback(libly.$U.evalJson(data.responseText));
+		});
 		req.addEventListener("failure",function(data){
 			liberator.echoerr(data.statusText);
 			liberator.echoerr(data.responseText);
@@ -464,23 +461,36 @@ let PLUGIN_INFO = xml`
 
 		}, // }}}
 
-		send : function(urls, callback) { //{{{
-		// https://getpocket.com/api/docs/#send
+		send : function(urls, action, callback) { //{{{
+		// API https://getpocket.com/developer/docs/v3/modify
 
 		let manager = Components.classes["@mozilla.org/login-manager;1"].getService(Components.interfaces.nsILoginManager);
 		let logins = manager.findLogins({},"https://getpocket.com","",null);
-
+	
+		// TODO: Move this  upstream (upward)	
+		if (urls.length < 1) {
+			urls = [content.location.href];
+		}
+		
 		function get_item_id(args) {
-			// TODO Implementation
+			for (var item in ListCache.unread.cache.list) { 
+				item = ListCache.unread.cache.list[item];
+				// liberator.echo(print_r(item));
+				// liberator.echo(item["resolved_url"] + " =? " + args);
+				if (item["resolved_url"] == args || item["given_url"] == args) {
+					// alert("URL: " + args + " id: " + item["item_id"]);
+					// liberator.echo("URL: " + args + " id: " + item["item_id"]);
+					return item["item_id"];
+				}
+			}
+			return "";
 		}
 
-		function make_read_list(args){
-			let o = {};
+		function make_read_list(args, act){
+			let o = [{}];
 			for (let i = 0; i < args.length; i++) {
-				// TODO test
-				o[i] = {"action":"archive", "item_id":get_item_id(args[i])};
-				// o[i] = {"url":args[i]};
-			};
+				o[i] = {"action":act, "item_id":get_item_id(args[i])};
+			}
 			return JSON.stringify(o);
 		}
 
@@ -493,17 +503,19 @@ let PLUGIN_INFO = xml`
 				postBody:getParameterMap(
 					{
 					consumer_key : this.consumer_key,
-					// username  : logins[0].username,
-					// password  : logins[0].password,
-					access_token : this.access_token,
-					actions      : make_read_list(urls),
+					access_token : this.oauth_token,
+					actions      : make_read_list(urls, action),
+					format       : "json",
 					}
 				)
 			}
 		);
 
 		var ref = this;
-		req.addEventListener("success",callback);
+		req.addEventListener("success",function(data) {
+			callback(data);
+			alert("Read ok" + print_r(data));
+		});
 
 		req.addEventListener("failure",function(data){
 			liberator.echoerr(data.statusText);
@@ -511,7 +523,6 @@ let PLUGIN_INFO = xml`
 		});
 
 		req.post();
-
 
 		}, // }}}
 
@@ -526,9 +537,9 @@ let PLUGIN_INFO = xml`
 				asynchronous:true,
 				postBody:getParameterMap(
 					{
-					consumer_key    : this.consumer_key,
-					access_token : this.access_token,
-					format    : "json",
+					consumer_key : this.consumer_key,
+					access_token : this.oauth_token,
+					format       : "json",
 					}
 				)
 			}
@@ -609,10 +620,16 @@ let PLUGIN_INFO = xml`
 		unread: new Cache({name: 'list', updater: Pocket.get.bind(Pocket, 'unread')})
 	};
 
+	function deleteArticle(urls){ // {{{
+		for (let [, url] in Iterator(urls))
+			ListCache.unread.remove(url);
+		Pocket.send(urls, "delete", echo.bind(null, "Deleted: " + urls.length));
+	} // }}}
+
 	function markAsRead(urls){ // {{{
 		for (let [, url] in Iterator(urls))
 			ListCache.unread.remove(url);
-		Pocket.send(urls, echo.bind(null, "Mark as read: " + urls.length));
+		Pocket.send(urls, "archive", echo.bind(null, "Mark as read: " + urls.length));
 	} // }}}
 
 	function addItemByArgs(args){ // {{{
