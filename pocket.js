@@ -205,9 +205,27 @@ function print_r(arr, level) {
 				}
 			),
 
+			new Command(["unread","u"], "Mark item(s) as read.",
+				function (args) {
+					markAsUnread(args);
+				},{
+					bang: true,
+					completer : listCompleter,
+					options: listOptions
+				}
+			),
 			new Command(["delete","d"], "Delete item(s)",
 				function (args) {
 					deleteArticle(args);
+				},{
+					bang: true,
+					completer : listCompleter,
+					options: listOptions
+				}
+			),
+			new Command(["favorite","f"], "Mark item(s) as favorite",
+				function (args) {
+					markAsFavorite(args);
 				},{
 					bang: true,
 					completer : listCompleter,
@@ -418,7 +436,7 @@ function print_r(arr, level) {
 
 		req.addEventListener("success",function(data){
 			liberator.echo("[Pocket] Sync completed");
-			alert(print_r(ListCache));
+			// alert(print_r(ListCache));
 			callback(libly.$U.evalJson(data.responseText));
 		});
 		req.addEventListener("failure",function(data){
@@ -514,7 +532,6 @@ function print_r(arr, level) {
 		var ref = this;
 		req.addEventListener("success",function(data) {
 			callback(data);
-			alert("Read ok" + print_r(data));
 		});
 
 		req.addEventListener("failure",function(data){
@@ -626,10 +643,21 @@ function print_r(arr, level) {
 		Pocket.send(urls, "delete", echo.bind(null, "Deleted: " + urls.length));
 	} // }}}
 
+	function markAsFavorite(urls){ // {{{
+		Pocket.send(urls, "favorite", echo.bind(null, "Favorited: " + urls.length > 0 ? url.length : urls[0]));
+	} // }}}
+
+	function markAsUnread(urls){ // {{{
+		// TODO This is probably not working the same way as the others
+		for (let [, url] in Iterator(urls))
+			ListCache.unread.remove(url);
+		Pocket.send(urls, "readd", echo.bind(null, "Mark as read: " + urls.length));
+	} // }}}
+
 	function markAsRead(urls){ // {{{
 		for (let [, url] in Iterator(urls))
 			ListCache.unread.remove(url);
-		Pocket.send(urls, "archive", echo.bind(null, "Mark as read: " + urls.length));
+		Pocket.send(urls, "archive", echo.bind(null, "Mark as unread: " + urls.length));
 	} // }}}
 
 	function addItemByArgs(args){ // {{{
