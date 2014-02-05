@@ -1,8 +1,6 @@
 /*
  * pocket.js
- * API v3
  * API Reference: http://getpocket.com/developer/docs/overview
- * TODO:ADDにbufferからのリストを入れられるように
 */
 
 let PLUGIN_INFO = xml`
@@ -13,7 +11,7 @@ let PLUGIN_INFO = xml`
     <minVersion>3.0</minVersion>
     <author mail="philipp@schmitt.co" homepage="http://lxl.io">Philipp Schmitt</author>
     <updateURL>https://raw.github.com/pschmitt/vimperator-pocket/master/pocket.js</updateURL>
-    <detail lang="ja"><![CDATA[
+    <detail lang="en"><![CDATA[
         // TODO Documentation
     ]]></detail>
 </VimperatorPlugin>`;
