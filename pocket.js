@@ -598,7 +598,7 @@ let PLUGIN_INFO = xml`
     } // }}}
 
     function countObjectValues(obj){ // {{{
-     	return [1 for (_ in Iterator(obj))].length;
+         return [1 for (_ in Iterator(obj))].length;
     } // }}}
 
     function getItemAtPos(bang, pos) { // {{{
