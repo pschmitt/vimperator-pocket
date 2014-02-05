@@ -104,6 +104,24 @@ let PLUGIN_INFO = xml`
                 }
             ),
 
+            new Command(["first","fi"], "Open first item in a new tab.",
+                function () {
+                    let firstItem = getItemAtPos(false, 0);
+                    let firstUrl = firstItem.resolved_url != undefined ? firstItem.resolved_url : firstItem.given_url;
+                    liberator.open(firstUrl, liberator.NEW_TAB);
+                    if(liberator.globalVariables.pocket_open_as_read == 1) markAsRead();
+                },{}
+            ),
+
+            new Command(["last","la"], "Open last item in a new tab.",
+                function () {
+                    let lastItem = getItemAtPos(false, countObjectValues(ListCache.unread.cache.list) - 1);
+                    let lastUrl = lastItem.resolved_url != undefined ? lastItem.resolved_url : lastItem.given_url;
+                    liberator.open(lastUrl, liberator.NEW_TAB);
+                    if(liberator.globalVariables.pocket_open_as_read == 1) markAsRead();
+                },{}
+            ),
+
             new Command(["read","r"], "Mark item(s) as read.",
                 function (args) {
                     markAsRead(args);
@@ -579,9 +597,22 @@ let PLUGIN_INFO = xml`
         ].join("&");
     } // }}}
 
-  function countObjectValues(obj){ // {{{
-    return [1 for (_ in Iterator(obj))].length;
-  } // }}}
+    function countObjectValues(obj){ // {{{
+     	return [1 for (_ in Iterator(obj))].length;
+    } // }}}
+
+    function getItemAtPos(bang, pos) { // {{{
+        var l = ListCache[bang ? 'all' : 'unread'].cache.list;
+        var i = 0;
+        for (var ind in l) {
+            if (l.hasOwnProperty(ind)) {
+                if (pos == i)  {
+                    return l[ind];
+                }
+                else i++;
+            }
+        }
+    } // }}}
 
     // Debug {{{
     function e(v,c){
