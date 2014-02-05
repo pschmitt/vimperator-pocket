@@ -49,14 +49,14 @@ let PLUGIN_INFO = xml`
                     filter: args['-filter'],
                     match: CompletionContext.prototype.match
                 };
-                filter = function (item) (matcher.match(item.url) || matcher.match(item.title));
+                filter = function (item) (matcher.match(item.resolved_url) || matcher.match(item.resolved_title));
             }
 
             context.completions = [
-                [item.url,item.title]
+                [item.resolved_url,item.resolved_title]
                 for([, item] in Iterator(data.list))
                 if(
-                    !args.some(function (arg) arg == item.url)
+                    !args.some(function (arg) arg == item.resolved_url)
                     &&
                     filter(item)
                 )
@@ -66,6 +66,7 @@ let PLUGIN_INFO = xml`
 
     } //}}}
 
+    // User commands {{{
     commands.addUserCommand(["ril","pocket"],    "Pocket plugin",
         function(args){
             addItemByArgs(args);
@@ -99,9 +100,9 @@ let PLUGIN_INFO = xml`
                     liberator.open(args, liberator.NEW_BACKGROUND_TAB);
                     if(liberator.globalVariables.pocket_open_as_read == 1) markAsRead(args);
                 },{
-                    bang: true,
+                    bang      : true,
                     completer : listCompleter,
-                    options: listOptions
+                    options   : listOptions
                 }
             ),
 
@@ -109,9 +110,9 @@ let PLUGIN_INFO = xml`
                 function (args) {
                     markAsRead(args);
                 },{
-                    bang: true,
+                    bang      : true,
                     completer : listCompleter,
-                    options: listOptions
+                    options   : listOptions
                 }
             ),
 
@@ -119,18 +120,18 @@ let PLUGIN_INFO = xml`
                 function (args) {
                     markAsUnread(args);
                 },{
-                    bang: true,
+                    bang       : false,
                     completer : listCompleter,
-                    options: listOptions
+                    options   : listOptions
                 }
             ),
             new Command(["delete","d"], "Delete item(s)",
                 function (args) {
                     deleteArticle(args);
                 },{
-                    bang: true,
+                    bang      : false,
                     completer : listCompleter,
-                    options: listOptions
+                    options   : listOptions
                 }
             ),
 
@@ -138,9 +139,9 @@ let PLUGIN_INFO = xml`
                 function (args) {
                     markAsFavorite(args);
                 },{
-                    bang: true,
+                    bang      : false,
                     completer : listCompleter,
-                    options: listOptions
+                    options   : listOptions
                 }
             ),
 
@@ -148,9 +149,9 @@ let PLUGIN_INFO = xml`
                 function (args) {
                     markAsUnfavorite(args);
                 },{
-                    bang: true,
+                    bang      : false,
                     completer : listCompleter,
-                    options: listOptions
+                    options   : listOptions
                 }
             ),
 
@@ -196,6 +197,8 @@ let PLUGIN_INFO = xml`
         },
         true
     );
+
+// }}}
 
     const CacheStore = storage.newMap("pocket",{store:true});
 
@@ -252,10 +255,9 @@ let PLUGIN_INFO = xml`
 
     let Pocket = {
         consumer_key : (liberator.globalVariables.pocket_consumer_key) ? liberator.globalVariables.pocket_consumer_key : '',
-        // TODO save this in a cookie or maybe even discard?
-        oauth_code : '',
+        oauth_code   : '',
         redirect_uri : 'http://junk.lxl.io/pocket',
-        oauth_token : (liberator.globalVariables.pocket_oauth_token) ? liberator.globalVariables.pocket_oauth_token : '',
+        oauth_token  : (liberator.globalVariables.pocket_oauth_token) ? liberator.globalVariables.pocket_oauth_token : '',
 
         auth_req: function(state, callback) { // {{{
         // API: http://getpocket.com/developer/docs/authentication
@@ -269,7 +271,7 @@ let PLUGIN_INFO = xml`
                 {
                 consumer_key : this.consumer_key,
                 redirect_uri : this.redirect_uri,
-                format    	 : "json",
+                format       : "json",
                 }
             )
             }
@@ -307,7 +309,7 @@ let PLUGIN_INFO = xml`
                 {
                 consumer_key : this.consumer_key,
                 code         : this.oauth_code,
-                format 		 : "json",
+                format       : "json",
                 }
             )
             }
@@ -381,7 +383,6 @@ let PLUGIN_INFO = xml`
                 }
             )
             }
-
         );
 
         req.addEventListener("success",callback);
@@ -495,7 +496,7 @@ let PLUGIN_INFO = xml`
         }, // }}}
 
         debug : function() { // {{{
-            alert("Consumer Key: " + this.consumer_key + " Token: " + this.oauth_token + "\n");
+            alert("Consumer Key: " + this.consumer_key + " Token: " + this.oauth_token);
         }, // }}}
     }
 
@@ -584,13 +585,12 @@ let PLUGIN_INFO = xml`
     return [1 for (_ in Iterator(obj))].length;
   } // }}}
 
-    // for debug {{{
+    // Debug {{{
     function e(v,c){
         if(c) util.copyToClipboard(v);
         liberator.log(v,-1)
-    } // }}}
+    }
 
-    // Debug
     function print_r(arr, level) { // {{{
 
         var dumped_text = "";
