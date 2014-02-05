@@ -1,59 +1,20 @@
 /*
  * pocket.js
- * read it later apiをたたく
- * API Reffernce : https://getpocket.com/api/docs/
+ * API v3
+ * API Reference: http://getpocket.com/developer/docs/overview 
  * TODO:ADDにbufferからのリストを入れられるように
 */
 
 let PLUGIN_INFO = xml`
 <VimperatorPlugin>
     <name>pocket</name>
-    <description lang="ja">Pocket を快適に使うためのプラグインです</description>
+    <description lang="en">Pocket</description>
     <version>0.5.0</version>
     <minVersion>3.0</minVersion>
-    <author mail="ninja.tottori@gmail.com" homepage="http://twitter.com/ninja_tottori">ninja.tottori</author>
-    <updateURL>https://github.com/vimpr/vimperator-plugins/raw/master/pocket.js</updateURL>
+    <author mail="philipp@schmitt.co" homepage="http://lxl.io">Philipp Schmitt</author>
+    <updateURL>https://raw.github.com/pschmitt/vimperator-pocket/master/pocket.js</updateURL>
     <detail lang="ja"><![CDATA[
-
-    Q.これは何？
-    A.Read it Later を快適に使うためのプラグインです
-
-    注意1.
-        パスワードマネージャに依存してるので、PocketのID/PWをパスワードマネージャに登録しておく必要があります。
-
-    注意2.
-        API Key を使うので
-        https://getpocket.com/api/signup/
-        から自分のAPI Keyを取得して
-        rcファイルに let g:pocket_consumer_key = "api key" と書いておいた方が良いと思います。
-        デフォルトではあらかじめ私が取得したAPI Key使ってますが、一定時間内のリクエスト数などに制限があるみたいです。
-        同じキーで1時間に10000回コールするとアレされるそうなので、チームotsuneの方達などは独自で取った方がいいかと思います。
-
-
-        == Command ==
-    :ril
-    :ril add
-        今見ているページのurlとtitleを登録します
-        オプションとして url , title が選べるので適当に編集して登録もできます。
-        また、URL の補完も効きます。
-        URL補完は let g:pocket_complete = "slf" のようにして使用する補完を選択できます。
-
-    :ril open
-        <Space>で補完にpocketのリストが出てくるので、任意のURLを選択(<Space>)して実行すると新しいタブに開きます。
-        :ril open! と!をつけると既読のみ補完に表示されます。
-
-        また、開くと同時に既読フラグを立てに行く事ができます。
-        let g:pocket_open_as_read = 1
-        としてもらえれば大丈夫です。
-
-    :ril read
-        既読フラグを立てる為のサブコマンドです。
-        openした時に既読にしたくないっていう人はこれを使って既読フラグを立てて下さい。
-
-    :ril stats
-        since, list, unread, read の情報がとれます
-
-
+		// TODO Documentation
     ]]></detail>
 </VimperatorPlugin>`;
 
@@ -63,43 +24,6 @@ let PLUGIN_INFO = xml`
     let listOptions = [ // {{{
         [['-filter', '-f'], commands.OPTION_STRING, null, []]
     ]; // }}}
-
-// Debug
-function print_r(arr, level) {
-
-    var dumped_text = "";
-    if (!level) level = 0;
-
-    //The padding given at the beginning of the line.
-    var level_padding = "";
-    var bracket_level_padding = "";
-
-    for (var j = 0; j < level + 1; j++) level_padding += "    ";
-    for (var b = 0; b < level; b++) bracket_level_padding += "    ";
-
-    if (typeof(arr) == 'object') { //Array/Hashes/Objects
-        dumped_text += "Array\n";
-        dumped_text += bracket_level_padding + "(\n";
-        for (var item in arr) {
-
-            var value = arr[item];
-
-            if (typeof(value) == 'object') { //If it is an array,
-                dumped_text += level_padding + "[" + item + "] => ";
-                dumped_text += print_r(value, level + 2);
-            } else {
-                dumped_text += level_padding + "[" + item + "] => " + value + "\n";
-            }
-
-        }
-        dumped_text += bracket_level_padding + ")\n\n";
-    } else { //Stings/Chars/Numbers etc.
-        dumped_text = "===>" + arr + "<===(" + typeof(arr) + ")";
-    }
-
-    return dumped_text;
-
-}
 
     function listCompleter(context,args){ // {{{
 
@@ -680,6 +604,43 @@ function print_r(arr, level) {
         if(c) util.copyToClipboard(v);
         liberator.log(v,-1)
     } // }}}
+
+	// Debug
+	function print_r(arr, level) { // {{{
+
+		var dumped_text = "";
+		if (!level) level = 0;
+
+		//The padding given at the beginning of the line.
+		var level_padding = "";
+		var bracket_level_padding = "";
+
+		for (var j = 0; j < level + 1; j++) level_padding += "    ";
+		for (var b = 0; b < level; b++) bracket_level_padding += "    ";
+
+		if (typeof(arr) == 'object') { //Array/Hashes/Objects
+			dumped_text += "Array\n";
+			dumped_text += bracket_level_padding + "(\n";
+			for (var item in arr) {
+
+				var value = arr[item];
+
+				if (typeof(value) == 'object') { //If it is an array,
+					dumped_text += level_padding + "[" + item + "] => ";
+					dumped_text += print_r(value, level + 2);
+				} else {
+					dumped_text += level_padding + "[" + item + "] => " + value + "\n";
+				}
+
+			}
+			dumped_text += bracket_level_padding + ")\n\n";
+		} else { //Stings/Chars/Numbers etc.
+			dumped_text = "===>" + arr + "<===(" + typeof(arr) + ")";
+		}
+
+		return dumped_text;
+	} // }}}
+
 
     // Export {{{
     __context__.ListCache = ListCache;
