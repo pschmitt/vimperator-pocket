@@ -269,7 +269,7 @@ let PLUGIN_INFO = xml`
                 {
                 consumer_key : this.consumer_key,
                 redirect_uri : this.redirect_uri,
-                format    : "json",
+                format    	 : "json",
                 }
             )
             }
@@ -307,7 +307,7 @@ let PLUGIN_INFO = xml`
                 {
                 consumer_key : this.consumer_key,
                 code         : this.oauth_code,
-                format : "json",
+                format 		 : "json",
                 }
             )
             }
@@ -341,9 +341,9 @@ let PLUGIN_INFO = xml`
                 {
                 consumer_key : this.consumer_key,
                 access_token : this.oauth_token,
-                format         : "json",
-                count          : (liberator.globalVariables.pocket_get_count? liberator.globalVariables.pocket_get_count : 1000),
-                state          : state
+                format       : "json",
+                count        : (liberator.globalVariables.pocket_get_count? liberator.globalVariables.pocket_get_count : 1000),
+                state        : state
                 }
             )
             }
@@ -376,8 +376,8 @@ let PLUGIN_INFO = xml`
                 {
                 consumer_key : this.consumer_key,
                 access_token : this.oauth_token,
-                url       : url,
-                title     : title,
+                url          : url,
+                title        : title,
                 }
             )
             }
