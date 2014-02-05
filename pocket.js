@@ -1,7 +1,7 @@
 /*
  * pocket.js
  * API v3
- * API Reference: http://getpocket.com/developer/docs/overview 
+ * API Reference: http://getpocket.com/developer/docs/overview
  * TODO:ADDにbufferからのリストを入れられるように
 */
 
@@ -14,7 +14,7 @@ let PLUGIN_INFO = xml`
     <author mail="philipp@schmitt.co" homepage="http://lxl.io">Philipp Schmitt</author>
     <updateURL>https://raw.github.com/pschmitt/vimperator-pocket/master/pocket.js</updateURL>
     <detail lang="ja"><![CDATA[
-		// TODO Documentation
+        // TODO Documentation
     ]]></detail>
 </VimperatorPlugin>`;
 
@@ -30,7 +30,7 @@ let PLUGIN_INFO = xml`
         function sortDate(store){
             let ary = [];
             for (let s in store){
-                ary.push([s[1].time_updated,s[1]]); // 更新日でソート
+                ary.push([s[1].time_updated,s[1]]); // Sort by date
             }
             ary.sort(function(a,b){return -(a[0] - b[0])});
             return ary;
@@ -93,21 +93,6 @@ let PLUGIN_INFO = xml`
                 completer: function (context, args) completion.url(context, liberator.globalVariables.pocket_complete)
                 }
             ),
-
-            /*
-            new Command(["get","g"], "Retrieve a user's reading list",
-                function (args) {
-                    ListCache.unread.update(true, function(data) echo(countObjectValues(data.list) + " found."));
-                },{
-                options : [
-                    //[["num"],commands.OPTION_INT],
-                    //[["read","-r"],commands.OPTION_NOARG],
-                    //[["tags","-t"],commands.OPTION_NOARG],
-                    //[["myAppOnly"],commands.OPTION_NOARG],
-                ],
-                }
-            ),
-            */
 
             new Command(["open","o"], "Open url in new tab from RIL list.",
                 function (args) {
@@ -175,11 +160,6 @@ let PLUGIN_INFO = xml`
                 },{}
             ),
 
-            new Command(["test"], "Return stats / current rate limit information about your API key",
-                function () {
-                    Pocket.apiTest();
-                },{}
-            ),
             new Command(["oauthreq"], "Login to Pocket",
                 function () {
                     Pocket.auth_req(/*function() {
@@ -188,21 +168,25 @@ let PLUGIN_INFO = xml`
                     }*/);
                 },{}
             ),
+
             new Command(["oauth"], "Login to Pocket",
                 function () {
                     Pocket.auth();
                 },{}
             ),
+
             new Command(["debug"], "Debug",
                 function () {
                     Pocket.debug();
                 },{}
             ),
+
             new Command(["sync"], "Sync",
                 function () {
                     ListCache.unread.update(true);
                 },{}
             ),
+
             new Command(["tag"], "t",
                 function () {
                     // TODO
@@ -274,7 +258,7 @@ let PLUGIN_INFO = xml`
         oauth_token : (liberator.globalVariables.pocket_oauth_token) ? liberator.globalVariables.pocket_oauth_token : '',
 
         auth_req: function(state, callback) { // {{{
-        // document => https://getpocket.com/api/docs#get
+        // API: http://getpocket.com/developer/docs/authentication
 
         let req = new libly.Request(
             "https://getpocket.com/v3/oauth/request" , // url
@@ -313,7 +297,7 @@ let PLUGIN_INFO = xml`
         }, // }}}
 
         auth: function(state, callback) { // {{{
-        // document => https://getpocket.com/api/docs#get
+        // API: http://getpocket.com/developer/docs/authentication
         let req = new libly.Request(
             "https://getpocket.com/v3/oauth/authorize" , // url
             null, // headers
@@ -381,6 +365,7 @@ let PLUGIN_INFO = xml`
         }, // }}}
 
         add : function(url,title,callback){ // {{{
+        // API: http://getpocket.com/developer/docs/v3/add
 
         let req = new libly.Request(
             "https://getpocket.com/v3/add" , // url
@@ -452,12 +437,12 @@ let PLUGIN_INFO = xml`
 
         var ref = this;
         req.addEventListener("success",function(data) {
-			alert(print_r(data));
+            alert(print_r(data));
             callback(data);
         });
 
         req.addEventListener("failure",function(data){
-			alert(print_r(data));
+            alert(print_r(data));
             liberator.echoerr(data.statusText);
             liberator.echoerr(data.responseText);
         });
@@ -493,9 +478,9 @@ let PLUGIN_INFO = xml`
             xml`<div>#Pocket Stats</div>` +
             xml`<div class="stats">
                 <!-- since : ${unixtimeToDate(res.user_since)} <br /> -->
-				list : ${res.count_list} (local: ${countObjectValues(ListCache.all.cache.list)}) -
-				unread : ${res.count_unread} - (local: ${countObjectValues(ListCache.unread.cache.list)})
-				read : ${res.count_read}
+                list : ${res.count_list} (local: ${countObjectValues(ListCache.all.cache.list)}) -
+                unread : ${res.count_unread} - (local: ${countObjectValues(ListCache.unread.cache.list)})
+                read : ${res.count_read}
             </div>
             `);
         });
@@ -551,7 +536,7 @@ let PLUGIN_INFO = xml`
         if (urls.length < 1) {
             urls = [buffer.URL];
         }
-		//for (let [, url] in Iterator(urls))
+        //for (let [, url] in Iterator(urls))
         //    ListCache.unread.remove(url);
         Pocket.send(urls, "readd", echo.bind(null, "Moved back to unread list: " + urls.length > 1 ? urls.length : buffer.title));
     } // }}}
@@ -605,41 +590,41 @@ let PLUGIN_INFO = xml`
         liberator.log(v,-1)
     } // }}}
 
-	// Debug
-	function print_r(arr, level) { // {{{
+    // Debug
+    function print_r(arr, level) { // {{{
 
-		var dumped_text = "";
-		if (!level) level = 0;
+        var dumped_text = "";
+        if (!level) level = 0;
 
-		//The padding given at the beginning of the line.
-		var level_padding = "";
-		var bracket_level_padding = "";
+        //The padding given at the beginning of the line.
+        var level_padding = "";
+        var bracket_level_padding = "";
 
-		for (var j = 0; j < level + 1; j++) level_padding += "    ";
-		for (var b = 0; b < level; b++) bracket_level_padding += "    ";
+        for (var j = 0; j < level + 1; j++) level_padding += "    ";
+        for (var b = 0; b < level; b++) bracket_level_padding += "    ";
 
-		if (typeof(arr) == 'object') { //Array/Hashes/Objects
-			dumped_text += "Array\n";
-			dumped_text += bracket_level_padding + "(\n";
-			for (var item in arr) {
+        if (typeof(arr) == 'object') { //Array/Hashes/Objects
+            dumped_text += "Array\n";
+            dumped_text += bracket_level_padding + "(\n";
+            for (var item in arr) {
 
-				var value = arr[item];
+                var value = arr[item];
 
-				if (typeof(value) == 'object') { //If it is an array,
-					dumped_text += level_padding + "[" + item + "] => ";
-					dumped_text += print_r(value, level + 2);
-				} else {
-					dumped_text += level_padding + "[" + item + "] => " + value + "\n";
-				}
+                if (typeof(value) == 'object') { //If it is an array,
+                    dumped_text += level_padding + "[" + item + "] => ";
+                    dumped_text += print_r(value, level + 2);
+                } else {
+                    dumped_text += level_padding + "[" + item + "] => " + value + "\n";
+                }
 
-			}
-			dumped_text += bracket_level_padding + ")\n\n";
-		} else { //Stings/Chars/Numbers etc.
-			dumped_text = "===>" + arr + "<===(" + typeof(arr) + ")";
-		}
+            }
+            dumped_text += bracket_level_padding + ")\n\n";
+        } else { //Stings/Chars/Numbers etc.
+            dumped_text = "===>" + arr + "<===(" + typeof(arr) + ")";
+        }
 
-		return dumped_text;
-	} // }}}
+        return dumped_text;
+    } // }}}
 
 
     // Export {{{
